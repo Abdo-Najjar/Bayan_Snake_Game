@@ -162,6 +162,44 @@ class GameFlow(unittest.TestCase):
         self.assertEqual(app.save["hat"], "crown")
         self.assertEqual(app.save["coins"], 1000 - 100)
 
+    def test_settings_volume_mouse_and_keys(self):
+        app = self.app
+        app.show_settings(back=app.scene)
+        s = app.scene
+        app.save["music_vol"] = 1.0
+        rect = s.menu.rects()[0]                       # music row
+        click = pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(rect.x + 20, rect.centery))
+        s.handle_event(click)                          # left half -> quieter
+        self.assertAlmostEqual(app.save["music_vol"], 0.9)
+        click = pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(rect.right - 20, rect.centery))
+        s.handle_event(click)                          # right half -> louder
+        self.assertAlmostEqual(app.save["music_vol"], 1.0)
+        s.menu.sel = 0
+        s.handle_event(key(pygame.K_RETURN))           # Enter at 100% wraps to 0%
+        self.assertAlmostEqual(app.save["music_vol"], 0.0)
+        s.menu.sel = 1
+        app.save["sfx_vol"] = 0.5
+        s.handle_event(key(pygame.K_LEFT))
+        self.assertAlmostEqual(app.save["sfx_vol"], 0.4)
+
+    def test_quit_asks_first(self):
+        app = self.app
+        app.show_menu()
+        self.run_frames(1, [key(pygame.K_ESCAPE)])
+        self.assertIsNotNone(app.modal)
+        self.run_frames(1, [key(pygame.K_RETURN)])      # "No" is the default
+        self.assertIsNone(app.modal)
+        self.assertTrue(app.running)
+        self.run_frames(1, [pygame.event.Event(pygame.QUIT)])
+        self.assertIsNotNone(app.modal)
+        self.run_frames(1, [key(pygame.K_ESCAPE)])      # Esc closes the dialog
+        self.assertIsNone(app.modal)
+        app.request_quit()
+        app.modal.menu.sel = 0                          # "Yes"
+        self.run_frames(1, [key(pygame.K_RETURN)])
+        self.assertFalse(app.running)
+        app.running = True
+
     def test_settings_change_values(self):
         app = self.app
         app.show_settings(back=app.scene)

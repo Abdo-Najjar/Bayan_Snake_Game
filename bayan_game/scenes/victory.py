@@ -47,7 +47,7 @@ class VictoryScene(Scene):
         surf.blit(background("grass"), (0, 0))
         overlay(surf, 120)
         self.effects.draw(surf)
-        text.draw(surf, tr("win.title"), text.big, (255, 235, 120), (W / 2, 110))
+        text.draw(surf, tr("win.title"), text.big, (255, 235, 120), (W / 2, 110), outline=((90, 30, 70), 3))
         text.draw(surf, tr("win.subtitle"), text.mid, (255, 255, 255), (W / 2, 165))
         sprite = pygame.transform.smoothscale(self.bayan.render_sprite(), (64 * 3, 80 * 3))
         surf.blit(sprite, sprite.get_rect(center=self.bayan.pos))

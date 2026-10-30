@@ -1,6 +1,7 @@
 """Title screen with an animated chase in the background."""
 import math
 
+import pygame
 from pygame import Vector2 as V
 
 from ..config import W
@@ -8,7 +9,8 @@ from ..content.levels import LEVELS
 from ..content.shop import dress_color
 from ..entities.bayan import Bayan
 from ..entities.snake import Snake
-from ..graphics.art import background, draw_coin, draw_star
+from ..graphics.ambient import Ambient
+from ..graphics.art import background, draw_coin, draw_star, vignette
 from ..graphics.ui import MenuList, overlay
 from .base import Scene
 
@@ -21,12 +23,16 @@ class MainMenuScene(Scene):
         self.bayan = Bayan(W / 2, 560, dress_color(save["dress"]), save["hat"])
         self.snake = Snake(V(100, 560), "normal", dict(speed=170, turn=2.4))
         self.snake.grow(4)
+        self.ambient = Ambient("grass")
 
     def items(self):
         tr = self.app.tr
         return [(k, tr(f"menu.{k}")) for k in ("play", "levels", "shop", "settings", "quit")]
 
     def handle_event(self, e):
+        if e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
+            self.app.request_quit()
+            return
         result = self.menu.handle_event(e)
         if not result:
             return
@@ -45,7 +51,7 @@ class MainMenuScene(Scene):
             elif key == "settings":
                 app.show_settings(back=self)
             elif key == "quit":
-                app.quit()
+                app.request_quit()
 
     def update(self, dt):
         super().update(dt)
@@ -58,16 +64,19 @@ class MainMenuScene(Scene):
             b.facing = b.vel.normalize()
         b.walk += dt * 14
         self.snake.update(dt, b, True, [], [], self.t)
+        self.ambient.update(dt, self.t)
 
     def draw(self, surf):
         app, text, tr = self.app, self.app.text, self.app.tr
         surf.blit(background("grass"), (0, 0))
         self.snake.draw(surf, self.t)
         self.bayan.draw(surf, self.t, app.name_label())
-        overlay(surf, 80)
+        self.ambient.draw(surf, self.t)
+        overlay(surf, 60)
+        surf.blit(vignette(surf.get_size(), 190), (0, 0))
 
         bob = math.sin(self.t * 2) * 5
-        text.draw(surf, tr("game.title"), text.huge, (255, 220, 240), (W / 2, 80 + bob))
+        text.draw(surf, tr("game.title"), text.huge, (255, 220, 240), (W / 2, 80 + bob), outline=((90, 30, 70), 3))
         text.draw(surf, tr("game.subtitle"), text.small, (255, 255, 255), (W / 2, 145))
         self.menu.draw(surf, text, self.t)
 

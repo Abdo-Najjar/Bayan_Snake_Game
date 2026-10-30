@@ -65,7 +65,7 @@ class LevelSelectScene(Scene):
         app, text, tr, save = self.app, self.app.text, self.app.tr, self.app.save
         surf.blit(background("grass"), (0, 0))
         overlay(surf, 120)
-        text.draw(surf, tr("levels.title"), text.big, (255, 220, 240), (W / 2, 70))
+        text.draw(surf, tr("levels.title"), text.big, (255, 220, 240), (W / 2, 70), outline=((90, 30, 70), 3))
         draw_coin(surf, W - 120, 40, 11)
         text.draw(surf, str(save["coins"]), text.mid, (255, 230, 120), (W - 102, 40), align="midleft")
 

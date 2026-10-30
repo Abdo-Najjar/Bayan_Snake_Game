@@ -28,8 +28,11 @@ class MenuList:
     action is "move", "activate", "left" or "right", or None.
     """
 
-    def __init__(self, items, center_x, top, width=340, height=50, gap=12):
+    def __init__(self, items, center_x, top, width=340, height=50, gap=12, adjustable=()):
         self.items = items
+        # keys whose value changes with left/right: a click on the button's left half
+        # sends "left", the right half sends "right"; the mouse wheel works too
+        self.adjustable = set(adjustable)
         self.center_x = center_x
         self.top = top
         self.width = width
@@ -76,7 +79,15 @@ class MenuList:
             for i, r in enumerate(self.rects()):
                 if r.collidepoint(e.pos):
                     self.sel = i
+                    if self.current_key() in self.adjustable:
+                        return self.current_key(), "left" if e.pos[0] < r.centerx else "right"
                     return self.current_key(), "activate"
+        elif e.type == pygame.MOUSEWHEEL and e.y:
+            pos = pygame.mouse.get_pos()
+            for i, r in enumerate(self.rects()):
+                if r.collidepoint(pos) and items[i][0] in self.adjustable:
+                    self.sel = i
+                    return self.current_key(), "right" if e.y > 0 else "left"
         return None
 
     def draw(self, surf, text, t, font=None):
@@ -93,3 +104,51 @@ class MenuList:
             surf.blit(s, rr)
             color = (255, 255, 255) if selected else (220, 230, 240)
             text.draw(surf, label, font, color, rr.center)
+
+
+class ConfirmDialog:
+    """A small yes/no box shown on top of the current scene."""
+
+    def __init__(self, app, title_key, text_key, on_yes):
+        self.app = app
+        self.title_key = title_key
+        self.text_key = text_key
+        self.on_yes = on_yes
+        self.t = 0.0
+        tr = app.tr
+        w, h = app.canvas.get_size()
+        self.box = pygame.Rect(0, 0, 440, 300)
+        self.box.center = (w // 2, h // 2)
+        self.menu = MenuList(lambda: [("yes", tr("confirm.yes")), ("no", tr("confirm.no"))],
+                             self.box.centerx, self.box.y + 150, 300, 46, 12)
+        self.menu.sel = 1   # "no" is selected by default so Enter never quits by accident
+        self.closed = False
+
+    def handle_event(self, e):
+        if e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
+            self.closed = True
+            return
+        result = self.menu.handle_event(e)
+        if not result:
+            return
+        key, action = result
+        if action == "move":
+            self.app.sfx.play("click")
+        elif action == "activate":
+            self.app.sfx.play("select")
+            self.closed = True
+            if key == "yes":
+                self.on_yes()
+
+    def update(self, dt):
+        self.t += dt
+
+    def draw(self, surf):
+        text, tr = self.app.text, self.app.tr
+        overlay(surf, 150)
+        grow = min(1.0, self.t * 8)
+        box = self.box.inflate(-40 * (1 - grow), -40 * (1 - grow))
+        panel(surf, box, color=(35, 30, 55), alpha=240)
+        text.draw(surf, tr(self.title_key), text.mid, (255, 220, 240), (box.centerx, box.y + 55))
+        text.draw(surf, tr(self.text_key), text.small, (220, 220, 235), (box.centerx, box.y + 100))
+        self.menu.draw(surf, text, self.t)

@@ -10,7 +10,7 @@ from pygame import Vector2 as V
 
 from .. import config
 from ..config import W, H, TOP
-from ..graphics.art import star_points
+from ..graphics.art import aa_circle, aa_polygon, star_points
 from ..utils import angle_diff, clamp
 from .snake import Snake
 
@@ -111,9 +111,9 @@ class Boss(Snake):
             k = i / (n - 1)
             r = self.head_r * (1 - 0.55 * k)
             p = self.body[i]
-            pygame.draw.circle(surf, c2, (int(p.x), int(p.y)), int(r) + 2)
-            pygame.draw.circle(surf, c1, (int(p.x), int(p.y)), int(r))
-            pygame.draw.circle(surf, (230, 180, 80), (int(p.x), int(p.y)), max(2, int(r * 0.3)))
+            aa_circle(surf, c2, (int(p.x), int(p.y)), int(r) + 2)
+            aa_circle(surf, c1, (int(p.x), int(p.y)), int(r))
+            aa_circle(surf, (230, 180, 80), (int(p.x), int(p.y)), max(2, int(r * 0.3)))
 
         h = self.head
         fwd = V(math.cos(self.angle), math.sin(self.angle))
@@ -121,7 +121,7 @@ class Boss(Snake):
         for s in (1, -1):  # horns
             base = h - fwd * 6 + side * 14 * s
             tip = h - fwd * 22 + side * 24 * s
-            pygame.draw.polygon(surf, (235, 225, 200), [base - fwd * 6, base + fwd * 6, tip])
+            aa_polygon(surf, (235, 225, 200), [base - fwd * 6, base + fwd * 6, tip])
         self.draw_head(surf, t, c1, c2, frozen)
 
         if self.mode == "stunned":
@@ -129,4 +129,4 @@ class Boss(Snake):
                 a = t * 4 + i * 2.1
                 cx = h.x + math.cos(a) * 26
                 cy = h.y - 28 + math.sin(a) * 8
-                pygame.draw.polygon(surf, (255, 220, 60), star_points(cx, cy, 6))
+                aa_polygon(surf, (255, 220, 60), star_points(cx, cy, 6))

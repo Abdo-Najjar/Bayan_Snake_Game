@@ -15,6 +15,7 @@ from pygame import Vector2 as V
 from .. import config
 from ..config import W, H, TOP
 from ..content.levels import SNAKE_TYPES
+from ..graphics.art import aa_circle
 from ..utils import angle_diff, clamp
 
 FROZEN = ((170, 215, 240), (130, 180, 220))
@@ -183,9 +184,9 @@ class Snake:
             r = self.head_r * (1 - 0.6 * k)
             p = self.body[i]
             col = c1 if i % 2 else c2
-            pygame.draw.circle(surf, col, (int(p.x), int(p.y)), int(r))
+            aa_circle(surf, col, (int(p.x), int(p.y)), int(r))
             hl = tuple(min(255, v + 50) for v in col)
-            pygame.draw.circle(surf, hl, (int(p.x - r * 0.3), int(p.y - r * 0.3)), max(1, int(r * 0.3)))
+            aa_circle(surf, hl, (int(p.x - r * 0.3), int(p.y - r * 0.3)), max(1, int(r * 0.3)))
         self.draw_head(surf, t, c1, c2, frozen)
 
     def draw_head(self, surf, t, c1, c2, frozen):
@@ -202,13 +203,13 @@ class Snake:
             pygame.draw.line(surf, (220, 30, 50), base, tip, 2)
             pygame.draw.line(surf, (220, 30, 50), tip, tip + fwd * 5 + side * 4, 2)
             pygame.draw.line(surf, (220, 30, 50), tip, tip + fwd * 5 - side * 4, 2)
-        pygame.draw.circle(surf, c2, (int(h.x), int(h.y)), r + 2)
-        pygame.draw.circle(surf, c1, (int(h.x), int(h.y)), r)
+        aa_circle(surf, c2, (int(h.x), int(h.y)), r + 2)
+        aa_circle(surf, c1, (int(h.x), int(h.y)), r)
         eye_col = (255, 60, 60) if aiming else (255, 240, 120)
         eye_r = max(3, r // 3)
         for s in (1, -1):
             e = h + fwd * (r * 0.4) + side * (r * 0.45) * s
-            pygame.draw.circle(surf, eye_col, (int(e.x), int(e.y)), eye_r)
+            aa_circle(surf, eye_col, (int(e.x), int(e.y)), eye_r)
             if self.sleep > 0 or frozen:
                 pygame.draw.line(surf, (20, 20, 20), (e.x - eye_r + 1, e.y), (e.x + eye_r - 1, e.y), 2)
             else:
@@ -216,6 +217,6 @@ class Snake:
                                                          2, eye_r * 2 - 2))
         if aiming:
             # warning mark above the head
-            pygame.draw.circle(surf, (230, 40, 40), (int(h.x), int(h.y - r - 14)), 8)
+            aa_circle(surf, (230, 40, 40), (int(h.x), int(h.y - r - 14)), 8)
             pygame.draw.line(surf, (255, 255, 255), (h.x, h.y - r - 19), (h.x, h.y - r - 12), 2)
-            pygame.draw.circle(surf, (255, 255, 255), (int(h.x), int(h.y - r - 9)), 1)
+            aa_circle(surf, (255, 255, 255), (int(h.x), int(h.y - r - 9)), 1)

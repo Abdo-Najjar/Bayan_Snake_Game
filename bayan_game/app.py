@@ -1,7 +1,12 @@
 """Window, main loop and switching between scenes."""
+import os
 import random
 
-import pygame
+# Smooth (linear) filtering when the 960x640 picture is scaled to the screen.
+# Must be set before the window is created.
+os.environ.setdefault("SDL_RENDER_SCALE_QUALITY", "linear")
+
+import pygame  # noqa: E402
 
 from . import config
 from .config import W, H, FPS
@@ -9,6 +14,7 @@ from .core.audio import Music, Sfx
 from .core.i18n import I18n
 from .core.save import SaveData
 from .core.text import Text
+from .graphics.ui import ConfirmDialog
 from .scenes.gameplay import GameplayScene
 from .scenes.level_select import LevelSelectScene
 from .scenes.main_menu import MainMenuScene
@@ -17,6 +23,7 @@ from .scenes.shop import ShopScene
 from .scenes.victory import VictoryScene
 
 WINDOW_TITLE = "Bayan vs the Snake"
+FADE_TIME = 0.3
 
 
 class App:
@@ -41,7 +48,11 @@ class App:
         self.music = Music(self.save["music_vol"])
 
         self._shake = 0.0
+        self._fade = 0.0
+        self._fade_surf = pygame.Surface((W, H))
         self._label = None
+        self.modal = None          # dialog drawn on top of the scene; pauses it
+        self._cursor_before_modal = True
         self.running = True
         self.scene = None
         self.show_menu()
@@ -81,7 +92,24 @@ class App:
     # ---------------------------------------------------------------- scenes
     def go(self, scene):
         self.scene = scene
+        self._fade = FADE_TIME
         scene.enter()
+
+    def open_dialog(self, dialog):
+        self._cursor_before_modal = pygame.mouse.get_visible()
+        pygame.mouse.set_visible(True)
+        self.modal = dialog
+
+    def close_dialog(self):
+        self.modal = None
+        pygame.mouse.set_visible(self._cursor_before_modal)
+
+    def request_quit(self):
+        """Ask before quitting. Closing the window twice quits right away."""
+        if self.modal is not None and self.modal.title_key == "confirm.quit_title":
+            self.quit()
+            return
+        self.open_dialog(ConfirmDialog(self, "confirm.quit_title", "confirm.quit_text", self.quit))
 
     def show_menu(self):
         self.go(MainMenuScene(self))
@@ -108,16 +136,29 @@ class App:
     def step(self, dt, events):
         for e in events:
             if e.type == pygame.QUIT:
-                self.quit()
+                self.request_quit()
             elif e.type == pygame.KEYDOWN and e.key == pygame.K_F11:
                 self.toggle_fullscreen()
+            elif self.modal:
+                self.modal.handle_event(e)
+                if self.modal and self.modal.closed:
+                    self.close_dialog()
             else:
                 self.scene.handle_event(e)
-        self.scene.update(dt)
+        if self.modal:
+            self.modal.update(dt)      # the scene stays frozen behind the dialog
+        else:
+            self.scene.update(dt)
         self._shake = max(0.0, self._shake - dt)
+        self._fade = max(0.0, self._fade - dt)
 
     def draw(self):
         self.scene.draw(self.canvas)
+        if self.modal:
+            self.modal.draw(self.canvas)
+        if self._fade > 0:
+            self._fade_surf.set_alpha(int(255 * self._fade / FADE_TIME))
+            self.canvas.blit(self._fade_surf, (0, 0))
         offset = (0, 0)
         if self._shake > 0:
             m = int(self._shake * 25)

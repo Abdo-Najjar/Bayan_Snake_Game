@@ -15,7 +15,8 @@ from ..entities.effects import Effects
 from ..entities.obstacles import Rock, Zone
 from ..entities.pickups import PowerUp
 from ..entities.snake import Snake
-from ..graphics.art import background, draw_coin, draw_gem, draw_heart, draw_star
+from ..graphics.ambient import Ambient
+from ..graphics.art import background, draw_coin, draw_gem, draw_heart, draw_star, vignette
 from ..graphics.hud import draw_hud
 from ..graphics.ui import MenuList, overlay
 from .base import Scene
@@ -36,6 +37,7 @@ class GameplayScene(Scene):
         self.terrain = self.cfg["terrain"]
         self.music = "boss" if "boss" in self.cfg["snakes"] else "game"
         self.effects = Effects()
+        self.ambient = Ambient(self.terrain)
         self.state = "intro"
         self.state_t = 0.0
         self.menu = None
@@ -187,6 +189,8 @@ class GameplayScene(Scene):
         super().update(dt)
         self.state_t += dt
         self.effects.update(dt)
+        if self.state != "paused":
+            self.ambient.update(dt, self.t)
         if self.state == "intro" and self.state_t >= INTRO_TIME:
             self.set_state("play")
         elif self.state == "play":
@@ -394,7 +398,9 @@ class GameplayScene(Scene):
                 z.draw(surf, t, see_through=in_bush and z.contains(self.bayan.pos))
         if frozen:
             overlay(surf, 35, (150, 210, 255))
+        self.ambient.draw(surf, t)
         self.effects.draw(surf)
+        surf.blit(vignette(surf.get_size()), (0, 0))
         draw_hud(surf, self.app, self)
 
         draw_state = getattr(self, f"draw_{self.state}", None)
@@ -405,7 +411,7 @@ class GameplayScene(Scene):
         text, tr = self.app.text, self.app.tr
         cx, cy = CENTER
         overlay(surf, 120)
-        text.draw(surf, tr("intro.level", n=self.level_index + 1), text.huge, (255, 220, 240), (cx, cy - 110))
+        text.draw(surf, tr("intro.level", n=self.level_index + 1), text.huge, (255, 220, 240), (cx, cy - 110), outline=((90, 30, 70), 3))
         text.draw(surf, tr(f"terrain.{self.terrain}"), text.mid, (255, 235, 160), (cx, cy - 55))
         if self.boss:
             goal = tr("intro.boss_goal")
@@ -414,18 +420,18 @@ class GameplayScene(Scene):
         text.draw(surf, goal, text.mid, (255, 255, 255), (cx, cy - 10))
         text.draw(surf, tr(f"level_tips.{self.level_index}"), text.small, (230, 240, 230), (cx, cy + 30))
         count = max(1, INTRO_TIME - int(self.state_t))
-        text.draw(surf, str(int(count)), text.huge, (255, 235, 120), (cx, cy + 110))
+        text.draw(surf, str(int(count)), text.huge, (255, 235, 120), (cx, cy + 110), outline=((90, 30, 70), 3))
 
     def draw_paused(self, surf):
         overlay(surf, 160)
-        self.app.text.draw(surf, self.app.tr("pause.title"), self.app.text.big, (255, 255, 255), (W / 2, 160))
+        self.app.text.draw(surf, self.app.tr("pause.title"), self.app.text.big, (255, 255, 255), (W / 2, 160), outline=((90, 30, 70), 3))
         self.menu.draw(surf, self.app.text, self.t)
 
     def draw_done(self, surf):
         text, tr = self.app.text, self.app.tr
         overlay(surf, 140)
         title = tr("done.boss_title") if self.boss else tr("done.title")
-        text.draw(surf, title, text.huge, (255, 235, 120), (W / 2, 150))
+        text.draw(surf, title, text.huge, (255, 235, 120), (W / 2, 150), outline=((90, 30, 70), 3))
         for i in range(3):
             appear = self.state_t - 0.3 - i * 0.3
             if appear < 0:
@@ -439,7 +445,7 @@ class GameplayScene(Scene):
     def draw_over(self, surf):
         text, tr = self.app.text, self.app.tr
         overlay(surf, 170)
-        text.draw(surf, tr("over.title"), text.huge, (255, 110, 110), (W / 2, 200))
+        text.draw(surf, tr("over.title"), text.huge, (255, 110, 110), (W / 2, 200), outline=((90, 30, 70), 3))
         draw_coin(surf, W / 2 - 60, 285, 12)
         text.draw(surf, tr("done.coins", n=self.level_coins), text.mid, (255, 230, 120), (W / 2 + 10, 285))
         self.menu.draw(surf, text, self.t)

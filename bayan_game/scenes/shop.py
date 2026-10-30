@@ -85,7 +85,7 @@ class ShopScene(Scene):
         app, text, tr, save = self.app, self.app.text, self.app.tr, self.app.save
         surf.blit(background("grass"), (0, 0))
         overlay(surf, 110)
-        text.draw(surf, tr("shop.title"), text.big, (255, 220, 240), (W / 2, 50))
+        text.draw(surf, tr("shop.title"), text.big, (255, 220, 240), (W / 2, 50), outline=((90, 30, 70), 3))
         draw_coin(surf, 40, 40, 12)
         text.draw(surf, str(save["coins"]), text.mid, (255, 230, 120), (60, 40), align="midleft")
 

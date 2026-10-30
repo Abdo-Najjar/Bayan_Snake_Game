@@ -38,11 +38,20 @@ class Text:
             self._cache[key] = img
         return img
 
-    def draw(self, surf, s, font, color, pos, align="center", shadow=True):
-        """align is any pygame.Rect anchor: center, midleft, midright, topleft..."""
+    def draw(self, surf, s, font, color, pos, align="center", shadow=True, outline=None):
+        """align is any pygame.Rect anchor: center, midleft, midright, topleft...
+        outline: optional (color, thickness) drawn around the letters."""
         img = self.render(s, font, color)
         rect = img.get_rect(**{align: pos})
-        if shadow:
+        if outline:
+            o_color, o_size = outline
+            o_img = self.render(s, font, o_color)
+            surf.blit(o_img, rect.move(0, o_size + 2))
+            for dx in range(-o_size, o_size + 1):
+                for dy in range(-o_size, o_size + 1):
+                    if dx * dx + dy * dy <= o_size * o_size:
+                        surf.blit(o_img, rect.move(dx, dy))
+        elif shadow:
             surf.blit(self.render(s, font, (20, 20, 20)), rect.move(2, 2))
         surf.blit(img, rect)
         return rect
