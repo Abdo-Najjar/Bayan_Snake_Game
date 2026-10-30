@@ -35,7 +35,8 @@ class GameplayScene(Scene):
         self.level_index = level_index
         self.cfg = LEVELS[level_index]
         self.terrain = self.cfg["terrain"]
-        self.music = "boss" if "boss" in self.cfg["snakes"] else "game"
+        self.music = f"level_{level_index + 1}"      # every level has its own track
+        self.ambience = self.terrain
         self.effects = Effects()
         self.ambient = Ambient(self.terrain)
         self.state = "intro"

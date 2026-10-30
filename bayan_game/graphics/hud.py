@@ -17,8 +17,7 @@ def draw_hud(surf, app, game):
 
     # lives
     for i in range(config.START_LIVES):
-        col = (235, 50, 80) if i < game.lives else (80, 80, 80)
-        draw_heart(surf, 28 + i * 34, 22, 20, col)
+        draw_heart(surf, 28 + i * 34, 22, 20, i < game.lives)
 
     # dash meter
     ready = game.bayan.dash_ready

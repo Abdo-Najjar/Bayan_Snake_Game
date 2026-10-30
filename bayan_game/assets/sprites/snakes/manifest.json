@@ -1,0 +1,50 @@
+{
+ "scale": 4,
+ "snakes": {
+  "normal": {
+   "radius": 52,
+   "head_frames": [
+    "open",
+    "closed",
+    "angry"
+   ],
+   "body_frames": 2
+  },
+  "small": {
+   "radius": 36,
+   "head_frames": [
+    "open",
+    "closed",
+    "angry"
+   ],
+   "body_frames": 2
+  },
+  "lunger": {
+   "radius": 52,
+   "head_frames": [
+    "open",
+    "closed",
+    "angry"
+   ],
+   "body_frames": 2
+  },
+  "poison": {
+   "radius": 52,
+   "head_frames": [
+    "open",
+    "closed",
+    "angry"
+   ],
+   "body_frames": 2
+  },
+  "boss": {
+   "radius": 96,
+   "head_frames": [
+    "open",
+    "closed",
+    "angry"
+   ],
+   "body_frames": 2
+  }
+ }
+}

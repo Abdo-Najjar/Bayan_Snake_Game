@@ -16,7 +16,8 @@
     "quit": "Quit",
     "coins": "Coins: {n}",
     "stars": "Stars: {n}",
-    "hint": "Arrows / mouse to choose  -  Enter to confirm  -  F11 full screen"
+    "hint": "Arrows / mouse to choose  -  Enter to confirm  -  F11 full screen",
+    "tutorial": "How to play"
   },
   "controls": {
     "title": "Controls",
@@ -148,5 +149,24 @@
     "quit_text": "Your progress is saved.",
     "yes": "Yes, quit",
     "no": "No, stay"
+  },
+  "tutorial": {
+    "step": "Step {n} of {total}",
+    "move": "Walk to the glowing circle",
+    "move_hint": "Arrow keys or WASD",
+    "gem": "Collect the gems - you need them to finish each level",
+    "dash": "Press Space to dash! Try it twice",
+    "dash_hint": "While dashing, snakes can't catch you",
+    "power": "Grab the power-up!",
+    "power_hint": "Speed, shield, freeze and invisibility all help you",
+    "snake": "A snake! Run away and collect 3 gems",
+    "snake_hint": "Dash away when it gets close",
+    "great": "Great!",
+    "caught": "Caught! Keep going",
+    "done_title": "You're ready, Bayan!",
+    "done_text": "Now the real adventure begins",
+    "start": "Start level 1",
+    "menu": "Main menu",
+    "skip": "Esc: skip tutorial"
   }
 }

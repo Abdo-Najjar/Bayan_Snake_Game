@@ -18,6 +18,8 @@ FIREWORK_COLORS = [(255, 220, 80), (255, 120, 180), (120, 220, 255), (160, 255, 
 
 
 class VictoryScene(Scene):
+    music = "victory"
+
     def __init__(self, app):
         super().__init__(app)
         self.effects = Effects()
@@ -49,7 +51,7 @@ class VictoryScene(Scene):
         self.effects.draw(surf)
         text.draw(surf, tr("win.title"), text.big, (255, 235, 120), (W / 2, 110), outline=((90, 30, 70), 3))
         text.draw(surf, tr("win.subtitle"), text.mid, (255, 255, 255), (W / 2, 165))
-        sprite = pygame.transform.smoothscale(self.bayan.render_sprite(), (64 * 3, 80 * 3))
+        sprite = self.bayan.render_sprite(scale=3)
         surf.blit(sprite, sprite.get_rect(center=self.bayan.pos))
         draw_star(surf, W / 2 - 120, 460, 16)
         text.draw(surf, tr("win.stars", n=save.total_stars(), max=len(LEVELS) * 3), text.mid,

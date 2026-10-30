@@ -3,7 +3,8 @@ import pygame
 
 
 class Scene:
-    music = "menu"          # background track while this scene is shown
+    music = "menu"          # assets/music/<name> played while this scene is shown
+    ambience = None         # assets/ambience/<name> looped under it (None = quiet)
     show_cursor = True
 
     def __init__(self, app):
@@ -13,6 +14,7 @@ class Scene:
     def enter(self):
         """Called every time the scene becomes active (also when returning to it)."""
         self.app.music.play(self.music)
+        self.app.music.play_ambience(self.ambience)
         pygame.mouse.set_visible(self.show_cursor)
 
     def handle_event(self, event):

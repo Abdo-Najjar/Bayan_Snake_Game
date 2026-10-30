@@ -10,7 +10,7 @@ from pygame import Vector2 as V
 
 from .. import config
 from ..config import W, H, TOP
-from ..graphics.art import aa_circle, aa_polygon, star_points
+from ..graphics.art import aa_polygon, star_points
 from ..utils import angle_diff, clamp
 from .snake import Snake
 
@@ -28,7 +28,6 @@ class Boss(Snake):
         self.head_r = 24
         self.spacing = 17
         self.body = [V(pos) for _ in range(20)]
-        self.color, self.color2 = (130, 45, 55), (85, 28, 38)
         self.hp = config.BOSS_HP
         self.mode_t = CHASE_TIME
         self.flash = 0.0
@@ -91,6 +90,8 @@ class Boss(Snake):
                 self.mode, self.mode_t = "chase", (CHASE_TIME if self.hp > 1 else 2.4)
         return events
 
+    taper = 0.55
+
     def draw(self, surf, t, frozen=False):
         if self.mode == "aim":
             # dashed line showing where the charge will go
@@ -100,31 +101,11 @@ class Boss(Snake):
                     a = self.head + fwd * (i * 22)
                     b = self.head + fwd * (i * 22 + 14)
                     pygame.draw.line(surf, (255, 70, 70), a, b, 3)
-        if self.flash > 0:
-            c1 = c2 = (255, 255, 255)
-        elif frozen:
-            c1, c2 = (170, 215, 240), (130, 180, 220)
-        else:
-            c1, c2 = self.color, self.color2
-        n = len(self.body)
-        for i in range(n - 1, 0, -1):
-            k = i / (n - 1)
-            r = self.head_r * (1 - 0.55 * k)
-            p = self.body[i]
-            aa_circle(surf, c2, (int(p.x), int(p.y)), int(r) + 2)
-            aa_circle(surf, c1, (int(p.x), int(p.y)), int(r))
-            aa_circle(surf, (230, 180, 80), (int(p.x), int(p.y)), max(2, int(r * 0.3)))
-
-        h = self.head
-        fwd = V(math.cos(self.angle), math.sin(self.angle))
-        side = V(-fwd.y, fwd.x)
-        for s in (1, -1):  # horns
-            base = h - fwd * 6 + side * 14 * s
-            tip = h - fwd * 22 + side * 24 * s
-            aa_polygon(surf, (235, 225, 200), [base - fwd * 6, base + fwd * 6, tip])
-        self.draw_head(surf, t, c1, c2, frozen)
-
+        icy = frozen or self.flash > 0     # flashes pale when it hits a rock
+        self.draw_body(surf, icy)
+        self.draw_head(surf, t, icy)
         if self.mode == "stunned":
+            h = self.head
             for i in range(3):
                 a = t * 4 + i * 2.1
                 cx = h.x + math.cos(a) * 26

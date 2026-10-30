@@ -1,9 +1,16 @@
-"""Sound effects and background music, generated in code (no audio files needed)."""
+"""Sound effects (generated in code) and music / ambience loops (WAV files in assets)."""
 import array
 import math
+import os
 import random
 
 import pygame
+
+from ..config import ASSETS_DIR
+
+MUSIC_DIR = os.path.join(ASSETS_DIR, "music")
+AMBIENCE_DIR = os.path.join(ASSETS_DIR, "ambience")
+AMBIENCE_LEVEL = 0.55     # ambience sits under the sound effects
 
 
 def _format():
@@ -77,94 +84,75 @@ class Sfx:
             snd.play()
 
 
-# ---------------------------------------------------------------- music
-def midi(n):
-    return 440.0 * 2 ** ((n - 69) / 12)
-
-
-def render_track(melody, bass, step, vol=0.16):
-    """melody: one MIDI note per step (0 = rest); bass: one note per two steps."""
-    fmt = _format()
-    if not fmt:
-        return None
-    rate, channels = fmt
-    n = int(rate * step)
-    out = array.array("h")
-    for i, m in enumerate(melody):
-        b = bass[(i // 2) % len(bass)]
-        dm = midi(m) / rate if m else 0
-        db = midi(b) / rate if b else 0
-        pm = pb = 0.0
-        for j in range(n):
-            x = j / n
-            attack = min(1.0, j / 80)
-            v = 0.0
-            if dm:
-                pm += dm
-                fr = pm % 1.0
-                v += (4 * abs(fr - 0.5) - 1) * attack * (1 - x) ** 0.6 * 0.7   # triangle wave
-            if db:
-                pb += db
-                v += math.sin(6.2831853 * pb) * attack * (1 - x * 0.5) * 0.5
-            s = int(32767 * vol * v)
-            for _ in range(channels):
-                out.append(s)
-    return pygame.mixer.Sound(buffer=out.tobytes())
-
-
-TRACKS = {
-    # calm and happy, C major pentatonic
-    "menu": dict(step=0.22, melody=[
-        72, 76, 79, 76, 81, 79, 76, 0, 74, 76, 79, 81, 79, 0, 76, 74,
-        72, 76, 79, 84, 81, 79, 76, 79, 74, 72, 74, 76, 72, 0, 0, 0],
-        bass=[48, 48, 55, 55, 53, 53, 55, 55, 48, 48, 57, 57, 53, 55, 48, 48]),
-    # upbeat chase
-    "game": dict(step=0.16, melody=[
-        79, 0, 79, 81, 79, 76, 72, 0, 74, 76, 79, 76, 74, 72, 74, 0,
-        79, 0, 79, 81, 84, 81, 79, 76, 74, 76, 74, 72, 72, 0, 0, 0,
-        76, 79, 81, 79, 76, 74, 72, 74, 76, 0, 76, 79, 81, 79, 76, 0,
-        84, 0, 81, 0, 79, 76, 74, 76, 72, 74, 76, 74, 72, 0, 0, 0],
-        bass=[48, 48, 48, 48, 43, 43, 43, 43, 45, 45, 45, 45, 41, 41, 43, 43]),
-    # tense boss fight, A minor
-    "boss": dict(step=0.14, melody=[
-        69, 0, 69, 72, 69, 0, 67, 69, 72, 74, 72, 69, 67, 0, 64, 0,
-        69, 0, 69, 72, 76, 74, 72, 74, 76, 79, 76, 74, 72, 69, 0, 0],
-        bass=[45, 45, 45, 45, 41, 41, 43, 43, 45, 45, 45, 45, 41, 43, 40, 40]),
-}
-
-
+# ---------------------------------------------------------------- music and ambience
 class Music:
-    """Loops one generated track on a reserved mixer channel."""
+    """Streams one music track (pygame.mixer.music) and loops one ambience sound.
 
-    def __init__(self, volume):
+    Tracks are assets/music/<name>.wav (or .ogg/.mp3: drop in a file with the same name).
+    Ambience loops are assets/ambience/<terrain>.wav.
+    """
+
+    FADE_MS = 700
+
+    def __init__(self, volume, ambience_volume=0.8):
         self.volume = volume
-        self.cache = {}
+        self.ambience_volume = ambience_volume
         self.current = None
+        self.current_ambience = None
+        self.enabled = pygame.mixer.get_init() is not None
         self.channel = None
-        if pygame.mixer.get_init():
+        self._ambience_cache = {}
+        if self.enabled:
             pygame.mixer.set_num_channels(16)
             pygame.mixer.set_reserved(1)
             self.channel = pygame.mixer.Channel(0)
 
-    def track(self, name):
-        if name not in self.cache:
-            try:
-                self.cache[name] = render_track(**TRACKS[name])
-            except Exception:
-                self.cache[name] = None
-        return self.cache[name]
+    @staticmethod
+    def find(folder, name):
+        for ext in (".ogg", ".mp3", ".wav"):
+            path = os.path.join(folder, name + ext)
+            if os.path.exists(path):
+                return path
+        return None
 
     def play(self, name):
-        if name == self.current or not self.channel:
+        if name == self.current or not self.enabled:
             return
         self.current = name
-        self.channel.stop()
-        snd = self.track(name)
-        if snd:
-            self.channel.set_volume(self.volume)
-            self.channel.play(snd, loops=-1)
+        path = self.find(MUSIC_DIR, name) if name else None
+        if not path:
+            pygame.mixer.music.fadeout(self.FADE_MS)
+            return
+        try:
+            pygame.mixer.music.load(path)
+            pygame.mixer.music.set_volume(self.volume)
+            pygame.mixer.music.play(-1, fade_ms=self.FADE_MS)
+        except pygame.error:
+            pass
+
+    def play_ambience(self, terrain):
+        if terrain == self.current_ambience or not self.channel:
+            return
+        self.current_ambience = terrain
+        if not terrain:
+            self.channel.fadeout(self.FADE_MS)
+            return
+        snd = self._ambience_cache.get(terrain)
+        if snd is None:
+            path = self.find(AMBIENCE_DIR, terrain)
+            if not path:
+                self.channel.fadeout(self.FADE_MS)
+                return
+            snd = self._ambience_cache[terrain] = pygame.mixer.Sound(path)
+        self.channel.set_volume(self.ambience_volume * AMBIENCE_LEVEL)
+        self.channel.play(snd, loops=-1, fade_ms=self.FADE_MS)
 
     def set_volume(self, v):
         self.volume = v
+        if self.enabled:
+            pygame.mixer.music.set_volume(v)
+
+    def set_ambience_volume(self, v):
+        self.ambience_volume = v
         if self.channel:
-            self.channel.set_volume(v)
+            self.channel.set_volume(v * AMBIENCE_LEVEL)

@@ -20,6 +20,7 @@ from .scenes.level_select import LevelSelectScene
 from .scenes.main_menu import MainMenuScene
 from .scenes.settings import SettingsScene
 from .scenes.shop import ShopScene
+from .scenes.tutorial import TutorialScene
 from .scenes.victory import VictoryScene
 
 WINDOW_TITLE = "Bayan vs the Snake"
@@ -45,7 +46,7 @@ class App:
         self.tr = I18n(config.LANG_DIR, self.save["language"], config.FALLBACK_LANGUAGE)
         self.text = Text()
         self.sfx = Sfx(self.save["sfx_vol"])
-        self.music = Music(self.save["music_vol"])
+        self.music = Music(self.save["music_vol"], self.save["sfx_vol"])
 
         self._shake = 0.0
         self._fade = 0.0
@@ -122,6 +123,9 @@ class App:
 
     def show_settings(self, back):
         self.go(SettingsScene(self, back))
+
+    def show_tutorial(self, then):
+        self.go(TutorialScene(self, then))
 
     def start_level(self, index):
         self.go(GameplayScene(self, index))

@@ -152,3 +152,14 @@ class ConfirmDialog:
         text.draw(surf, tr(self.title_key), text.mid, (255, 220, 240), (box.centerx, box.y + 55))
         text.draw(surf, tr(self.text_key), text.small, (220, 220, 235), (box.centerx, box.y + 100))
         self.menu.draw(surf, text, self.t)
+
+
+def draw_keycap(surf, text, label, rect, pressed=False):
+    """A keyboard key drawn as a button; it sinks and lights up while pressed."""
+    rect = pygame.Rect(rect)
+    depth = 2 if pressed else 6
+    pygame.draw.rect(surf, (60, 60, 80), rect.move(0, 6), border_radius=10)
+    top = rect.move(0, 6 - depth)
+    pygame.draw.rect(surf, (255, 200, 225) if pressed else (245, 245, 250), top, border_radius=10)
+    pygame.draw.rect(surf, (90, 90, 110), top, 2, border_radius=10)
+    text.draw(surf, label, text.small, (50, 50, 70), top.center, shadow=False)

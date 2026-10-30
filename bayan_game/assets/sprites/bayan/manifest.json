@@ -1,0 +1,17 @@
+{
+ "scale": 4,
+ "frame_size": [
+  256,
+  320
+ ],
+ "frames": 5,
+ "anchor": [
+  128,
+  200
+ ],
+ "directions": [
+  "down",
+  "up",
+  "side"
+ ]
+}

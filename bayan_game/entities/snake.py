@@ -16,9 +16,9 @@ from .. import config
 from ..config import W, H, TOP
 from ..content.levels import SNAKE_TYPES
 from ..graphics.art import aa_circle
+from ..graphics.sprites import bank
 from ..utils import angle_diff, clamp
 
-FROZEN = ((170, 215, 240), (130, 180, 220))
 LUNGE_RANGE = 190
 LUNGE_AIM_TIME = 0.55
 LUNGE_TIME = 0.42
@@ -176,20 +176,28 @@ class Snake:
         return events
 
     # ---------------------------------------------------------------- drawing
-    def draw(self, surf, t, frozen=False):
-        c1, c2 = FROZEN if frozen else (self.color, self.color2)
+    taper = 0.6          # how much thinner the tail is than the head
+
+    def head_state(self, frozen):
+        if self.sleep > 0 or frozen or self.mode == "stunned":
+            return "closed"
+        if self.mode in ("aim", "lunge", "charge"):
+            return "angry"
+        return "open"
+
+    def draw_body(self, surf, frozen):
+        sprites = bank()
         n = len(self.body)
         for i in range(n - 1, 0, -1):
-            k = i / (n - 1)
-            r = self.head_r * (1 - 0.6 * k)
-            p = self.body[i]
-            col = c1 if i % 2 else c2
-            aa_circle(surf, col, (int(p.x), int(p.y)), int(r))
-            hl = tuple(min(255, v + 50) for v in col)
-            aa_circle(surf, hl, (int(p.x - r * 0.3), int(p.y - r * 0.3)), max(1, int(r * 0.3)))
-        self.draw_head(surf, t, c1, c2, frozen)
+            r = self.head_r * (1 - self.taper * i / (n - 1))
+            seg = sprites.snake_segment(self.kind, i, r, frozen)
+            surf.blit(seg, seg.get_rect(center=(round(self.body[i].x), round(self.body[i].y))))
 
-    def draw_head(self, surf, t, c1, c2, frozen):
+    def draw(self, surf, t, frozen=False):
+        self.draw_body(surf, frozen)
+        self.draw_head(surf, t, frozen)
+
+    def draw_head(self, surf, t, frozen):
         h = V(self.head)
         aiming = self.mode == "aim"
         if aiming:
@@ -197,24 +205,14 @@ class Snake:
         fwd = V(math.cos(self.angle), math.sin(self.angle))
         side = V(-fwd.y, fwd.x)
         r = self.head_r
-        if (t * 2.5 + self.phase) % 1 < 0.35 and self.sleep <= 0 and not frozen:
+        if (t * 2.5 + self.phase) % 1 < 0.35 and self.head_state(frozen) == "open":
             base = h + fwd * (r + 1)
             tip = base + fwd * 10
             pygame.draw.line(surf, (220, 30, 50), base, tip, 2)
             pygame.draw.line(surf, (220, 30, 50), tip, tip + fwd * 5 + side * 4, 2)
             pygame.draw.line(surf, (220, 30, 50), tip, tip + fwd * 5 - side * 4, 2)
-        aa_circle(surf, c2, (int(h.x), int(h.y)), r + 2)
-        aa_circle(surf, c1, (int(h.x), int(h.y)), r)
-        eye_col = (255, 60, 60) if aiming else (255, 240, 120)
-        eye_r = max(3, r // 3)
-        for s in (1, -1):
-            e = h + fwd * (r * 0.4) + side * (r * 0.45) * s
-            aa_circle(surf, eye_col, (int(e.x), int(e.y)), eye_r)
-            if self.sleep > 0 or frozen:
-                pygame.draw.line(surf, (20, 20, 20), (e.x - eye_r + 1, e.y), (e.x + eye_r - 1, e.y), 2)
-            else:
-                pygame.draw.ellipse(surf, (20, 20, 20), (e.x + fwd.x * 1.5 - 1, e.y + fwd.y * 1.5 - eye_r + 1,
-                                                         2, eye_r * 2 - 2))
+        img = bank().snake_head(self.kind, self.head_state(frozen), math.degrees(self.angle), r, frozen)
+        surf.blit(img, img.get_rect(center=(round(h.x), round(h.y))))
         if aiming:
             # warning mark above the head
             aa_circle(surf, (230, 40, 40), (int(h.x), int(h.y - r - 14)), 8)

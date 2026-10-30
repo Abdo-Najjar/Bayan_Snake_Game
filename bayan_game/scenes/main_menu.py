@@ -16,9 +16,11 @@ from .base import Scene
 
 
 class MainMenuScene(Scene):
+    ambience = "grass"
+
     def __init__(self, app):
         super().__init__(app)
-        self.menu = MenuList(self.items, W / 2, 215, width=300, height=46, gap=10)
+        self.menu = MenuList(self.items, W / 2, 195, width=300, height=42, gap=8)
         save = app.save
         self.bayan = Bayan(W / 2, 560, dress_color(save["dress"]), save["hat"])
         self.snake = Snake(V(100, 560), "normal", dict(speed=170, turn=2.4))
@@ -27,7 +29,7 @@ class MainMenuScene(Scene):
 
     def items(self):
         tr = self.app.tr
-        return [(k, tr(f"menu.{k}")) for k in ("play", "levels", "shop", "settings", "quit")]
+        return [(k, tr(f"menu.{k}")) for k in ("play", "tutorial", "levels", "shop", "settings", "quit")]
 
     def handle_event(self, e):
         if e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
@@ -43,7 +45,12 @@ class MainMenuScene(Scene):
             self.app.sfx.play("select")
             app = self.app
             if key == "play":
-                app.start_level(min(app.save["unlocked"], len(LEVELS)) - 1)
+                if app.save["tutorial_done"]:
+                    app.start_level(min(app.save["unlocked"], len(LEVELS)) - 1)
+                else:
+                    app.show_tutorial(then=lambda: app.start_level(0))
+            elif key == "tutorial":
+                app.show_tutorial(then=app.show_menu)
             elif key == "levels":
                 app.show_levels()
             elif key == "shop":

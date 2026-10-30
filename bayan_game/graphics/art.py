@@ -149,12 +149,15 @@ def _make_background(terrain):
     return bg
 
 
-# ---------------------------------------------------------------- icons
-def draw_heart(surf, x, y, size, color=(235, 50, 80)):
-    r = size // 2
-    aa_circle(surf, color, (x - r // 2 - 1, y), r // 2 + 2)
-    aa_circle(surf, color, (x + r // 2 + 1, y), r // 2 + 2)
-    aa_polygon(surf, color, [(x - r - 1, y + 1), (x + r + 1, y + 1), (x, y + r + 4)])
+# ---------------------------------------------------------------- icons (PNG sprites)
+def _blit_icon(surf, name, cx, cy, size):
+    from .sprites import bank   # imported here: sprites need the window to exist first
+    img = bank().icon(name, size)
+    surf.blit(img, img.get_rect(center=(round(cx), round(cy))))
+
+
+def draw_heart(surf, x, y, size, filled=True):
+    _blit_icon(surf, "heart" if filled else "heart_empty", x, y + size * 0.15, size * 1.5)
 
 
 def star_points(cx, cy, r, inner=0.45, rot=-math.pi / 2):
@@ -167,40 +170,23 @@ def star_points(cx, cy, r, inner=0.45, rot=-math.pi / 2):
 
 
 def draw_star(surf, cx, cy, r, filled=True):
-    pts = star_points(cx, cy, r)
-    if filled:
-        aa_polygon(surf, (255, 210, 40), pts)
-        aa_polygon(surf, (200, 140, 20), pts, 2)
-    else:
-        aa_polygon(surf, (90, 90, 100), pts)
-        aa_polygon(surf, (60, 60, 70), pts, 2)
+    _blit_icon(surf, "star" if filled else "star_empty", cx, cy, r * 2.5)
 
 
 def draw_gem(surf, pos, t, size=12):
-    pulse = 1 + math.sin(t * 6) * 0.12
-    s = size * pulse
+    pulse = 1 + math.sin(t * 6) * 0.08
     glow = pygame.Surface((80, 80), pygame.SRCALPHA)
-    aa_circle(glow, (255, 240, 120, 70), (40, 40), int(s * 2.2))
+    pygame.draw.circle(glow, (255, 240, 120, 60), (40, 40), int(size * 2.2 * pulse))
     surf.blit(glow, (pos[0] - 40, pos[1] - 40))
-    a = t * 2
-    pts = []
-    for i in range(4):
-        ang = a + i * math.pi / 2
-        rr = s if i % 2 == 0 else s * 0.7
-        pts.append((pos[0] + math.cos(ang) * rr, pos[1] + math.sin(ang) * rr))
-    aa_polygon(surf, (255, 215, 40), pts)
-    aa_polygon(surf, (255, 255, 200), pts, 2)
+    _blit_icon(surf, "gem", pos[0], pos[1] + math.sin(t * 3) * 2, int(size * 2.6 * pulse / 2) * 2)
 
 
 def draw_coin(surf, x, y, r=9):
-    aa_circle(surf, (200, 140, 20), (int(x), int(y)), r)
-    aa_circle(surf, (255, 205, 50), (int(x), int(y)), r - 2)
-    pygame.draw.line(surf, (200, 140, 20), (x, y - r + 4), (x, y + r - 4), 2)
+    _blit_icon(surf, "coin", x, y, r * 2.6)
 
 
-def draw_lock(surf, x, y, size=16, color=(230, 230, 230)):
-    pygame.draw.arc(surf, color, (x - size * 0.45, y - size, size * 0.9, size), 0, math.pi, 3)
-    pygame.draw.rect(surf, color, (x - size * 0.6, y - size * 0.45, size * 1.2, size * 0.95), border_radius=3)
+def draw_lock(surf, x, y, size=16, color=None):
+    _blit_icon(surf, "lock", x, y - size * 0.3, size * 2.4)
 
 
 POWER_COLORS = {
@@ -212,27 +198,4 @@ POWER_COLORS = {
 
 
 def draw_power_icon(surf, kind, cx, cy, size=12):
-    s = size
-    if kind == "speed":
-        shape = [(0.15, -1), (-0.5, 0.1), (-0.02, 0.1), (-0.15, 1), (0.5, -0.12), (0.02, -0.12)]
-        pts = [(cx + px * s, cy + py * s) for px, py in shape]
-        aa_polygon(surf, (255, 220, 40), pts)
-        aa_polygon(surf, (180, 120, 0), pts, 2)
-    elif kind == "shield":
-        shape = [(-0.75, -0.85), (0.75, -0.85), (0.75, 0.05), (0, 0.95), (-0.75, 0.05)]
-        pts = [(cx + px * s, cy + py * s) for px, py in shape]
-        aa_polygon(surf, (70, 140, 240), pts)
-        aa_polygon(surf, (230, 240, 255), pts, 2)
-    elif kind == "freeze":
-        for i in range(3):
-            a = i * math.pi / 3
-            dx, dy = math.cos(a) * s, math.sin(a) * s
-            pygame.draw.line(surf, (60, 150, 220), (cx - dx, cy - dy), (cx + dx, cy + dy), 3)
-        aa_circle(surf, (200, 240, 255), (int(cx), int(cy)), max(2, s // 4))
-    elif kind == "ghost":
-        aa_circle(surf, (245, 245, 255), (int(cx), int(cy - s * 0.2)), int(s * 0.75))
-        pygame.draw.rect(surf, (245, 245, 255), (cx - s * 0.75, cy - s * 0.2, s * 1.5, s * 0.9))
-        for i in range(3):
-            aa_circle(surf, (245, 245, 255), (int(cx - s * 0.5 + i * s * 0.5), int(cy + s * 0.7)), max(2, s // 4))
-        aa_circle(surf, (40, 40, 60), (int(cx - s * 0.28), int(cy - s * 0.25)), max(1, s // 6))
-        aa_circle(surf, (40, 40, 60), (int(cx + s * 0.28), int(cy - s * 0.25)), max(1, s // 6))
+    _blit_icon(surf, kind, cx, cy, size * 2.6)

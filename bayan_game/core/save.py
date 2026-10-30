@@ -6,7 +6,8 @@ import os
 from .. import config
 from ..content.shop import FREE_ITEMS
 
-PROGRESS_DEFAULTS = dict(coins=0, unlocked=1, stars={}, owned=list(FREE_ITEMS), dress="pink", hat="bow")
+PROGRESS_DEFAULTS = dict(coins=0, unlocked=1, stars={}, owned=list(FREE_ITEMS), dress="pink", hat="bow",
+                         tutorial_done=False)
 SETTINGS_DEFAULTS = dict(music_vol=0.6, sfx_vol=0.8, fullscreen=True, difficulty=1,
                          language=config.DEFAULT_LANGUAGE)
 

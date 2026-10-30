@@ -22,6 +22,10 @@ from bayan_game.content.shop import SHOP_ITEMS  # noqa: E402
 from bayan_game.core.i18n import _flatten  # noqa: E402
 from bayan_game.entities.boss import Boss  # noqa: E402
 from bayan_game.entities.obstacles import Rock  # noqa: E402
+from bayan_game.core.audio import AMBIENCE_DIR, MUSIC_DIR, Music  # noqa: E402
+from bayan_game.content.levels import SNAKE_TYPES  # noqa: E402
+from bayan_game.graphics.sprites import bank  # noqa: E402
+from bayan_game.scenes import tutorial as tut  # noqa: E402
 
 DT = 1 / 60
 
@@ -61,6 +65,14 @@ class LanguageFiles(unittest.TestCase):
                         src = f.read()
                     self.assertFalse(any(0x600 <= ord(ch) <= 0x6FF for ch in src), name)
 
+
+
+class Assets(unittest.TestCase):
+    def test_music_for_every_level_and_ambience_for_every_terrain(self):
+        for name in ["menu", "tutorial", "victory"] + [f"level_{i + 1}" for i in range(len(LEVELS))]:
+            self.assertIsNotNone(Music.find(MUSIC_DIR, name), name)
+        for terrain in TERRAINS:
+            self.assertIsNotNone(Music.find(AMBIENCE_DIR, terrain), terrain)
 
 class GameFlow(unittest.TestCase):
     @classmethod
@@ -213,6 +225,75 @@ class GameFlow(unittest.TestCase):
         s.change("language", 1)
         self.assertEqual(app.tr.code, lang)
         self.assertTrue(math.isfinite(app.save["difficulty"]))
+
+
+    def test_tutorial_steps_to_the_end(self):
+        app = self.app
+        app.save["tutorial_done"] = False
+        started = []
+        app.show_tutorial(then=lambda: started.append(True))
+        scene = app.scene
+
+        def finish_step():
+            while scene.wait > 0:
+                self.run_frames(1)
+
+        for target in tut.MOVE_TARGETS:            # step 1: walk to the glowing rings
+            scene.bayan.pos = V(target)
+            self.run_frames(2)
+        finish_step()
+        self.assertEqual(scene.step, "gem")
+        for _ in range(tut.GOALS["gem"]):           # step 2: collect gems
+            scene.bayan.pos = V(scene.gem)
+            self.run_frames(2)
+        finish_step()
+        self.assertEqual(scene.step, "dash")
+        for _ in range(tut.GOALS["dash"]):          # step 3: dash
+            scene.bayan.dash_cd = 0
+            scene.bayan.dash_t = 0
+            self.run_frames(1, [key(pygame.K_SPACE)])
+        finish_step()
+        self.assertEqual(scene.step, "power")
+        scene.bayan.pos = V(scene.power.pos)        # step 4: shield
+        self.run_frames(2)
+        self.assertTrue(scene.shield)
+        finish_step()
+        self.assertEqual(scene.step, "snake")
+        scene.snake.sleep = 0                       # caught by the practice snake: shield takes it
+        scene.snake.place(V(scene.bayan.pos), scene.bayan.pos)
+        self.run_frames(2)
+        self.assertFalse(scene.shield)
+        for _ in range(tut.GOALS["snake"]):         # step 5: gems while the snake chases
+            scene.bayan.pos = V(scene.gem)
+            self.run_frames(2)
+        finish_step()
+        self.assertEqual(scene.step, "done")
+        self.assertTrue(app.save["tutorial_done"])
+        self.run_frames(5)
+        self.run_frames(1, [key(pygame.K_RETURN)])
+        self.assertEqual(type(app.scene).__name__, "GameplayScene")
+        self.assertEqual(started, [])
+
+    def test_play_starts_tutorial_first_time(self):
+        app = self.app
+        app.save["tutorial_done"] = False
+        app.show_menu()
+        self.run_frames(1, [key(pygame.K_RETURN)])
+        self.assertIsInstance(app.scene, tut.TutorialScene)
+        self.run_frames(1, [key(pygame.K_ESCAPE)])     # skip
+        self.assertTrue(app.save["tutorial_done"])
+        self.assertEqual(type(app.scene).__name__, "GameplayScene")
+
+    def test_sprites_load(self):
+        b = bank()
+        for direction in ("down", "up", "side"):
+            for frame in range(5):
+                self.assertEqual(b.bayan(direction, frame, (255, 105, 180), "bow").get_size(), (64, 80))
+        for kind in list(SNAKE_TYPES) + ["boss"]:
+            self.assertIsNotNone(b.snake_head(kind, "open", 30, 12, False))
+            self.assertIsNotNone(b.snake_segment(kind, 0, 10, False))
+        for icon in ("speed", "shield", "freeze", "ghost", "gem", "coin", "lock", "heart", "star"):
+            self.assertIsNotNone(b.icon(icon, 24))
 
 
 if __name__ == "__main__":

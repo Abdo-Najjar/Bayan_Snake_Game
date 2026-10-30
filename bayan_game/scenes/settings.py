@@ -24,6 +24,7 @@ class SettingsScene(Scene):
         super().__init__(app)
         self.back = back            # scene to return to
         self.music = getattr(back, "music", "menu")
+        self.ambience = getattr(back, "ambience", None)
         self.menu = MenuList(self.items, W / 2, 130, width=460, height=54, gap=8, adjustable=ADJUSTABLE)
         self.confirm_reset = False
         self.notice = 0.0
@@ -52,6 +53,7 @@ class SettingsScene(Scene):
         elif key == "sfx":
             save["sfx_vol"] = step_volume(save["sfx_vol"], step, wrap)
             app.sfx.set_volume(save["sfx_vol"])
+            app.music.set_ambience_volume(save["sfx_vol"])
         elif key == "fullscreen":
             app.toggle_fullscreen()
         elif key == "difficulty":

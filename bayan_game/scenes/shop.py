@@ -93,7 +93,7 @@ class ShopScene(Scene):
         cx, cy = 225, 340
         pygame.draw.ellipse(surf, (60, 40, 70), (cx - 110, cy + 120, 220, 50))
         pygame.draw.ellipse(surf, (110, 80, 130), (cx - 110, cy + 112, 220, 50))
-        sprite = pygame.transform.smoothscale(self.preview.render_sprite(), (64 * 4, 80 * 4))
+        sprite = self.preview.render_sprite(scale=4)
         bob = math.sin(self.t * 3) * 4
         surf.blit(sprite, sprite.get_rect(center=(cx, cy - 20 + bob)))
 
