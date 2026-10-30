@@ -1,0 +1,161 @@
+{
+  "_meta": { "name": "English", "rtl": false },
+
+  "game": {
+    "title": "Bayan vs the Snake",
+    "subtitle": "Help Bayan collect gems and escape the snakes!",
+    "bayan": "Bayan"
+  },
+
+  "menu": {
+    "play": "Play",
+    "levels": "Levels",
+    "shop": "Shop",
+    "settings": "Settings",
+    "quit": "Quit",
+    "coins": "Coins: {n}",
+    "stars": "Stars: {n}",
+    "hint": "Arrows / mouse to choose  -  Enter to confirm  -  F11 full screen"
+  },
+
+  "controls": {
+    "title": "Controls",
+    "move": "Arrows / WASD: move",
+    "dash": "Space: dash (can't be caught while dashing)",
+    "pause": "P / Esc: pause"
+  },
+
+  "levels": {
+    "title": "Choose a level",
+    "level": "Level {n}",
+    "locked": "Locked",
+    "footer": "Arrows to move  -  Enter to play  -  Esc to go back"
+  },
+
+  "terrain": {
+    "grass": "Meadow",
+    "desert": "Desert",
+    "snow": "Snow",
+    "forest": "Forest",
+    "lair": "The Snake's Lair"
+  },
+
+  "level_tips": {
+    "0": "Collect the gems and stay away from the snake!",
+    "1": "The yellow snake is small but fast",
+    "2": "The red snake shakes, then lunges - step aside! Quicksand slows you down",
+    "3": "The purple snake leaves poison behind - don't step in it",
+    "4": "Snow is slippery! Bayan can't stop quickly",
+    "5": "Three snakes! Use the power-ups",
+    "6": "Hide in the bushes and the snakes can't see you",
+    "7": "The last level before the giant snake!",
+    "8": "The giant snake charges in a straight line - make it crash into rocks 3 times!"
+  },
+
+  "shop": {
+    "title": "Shop",
+    "dresses": "Dresses",
+    "hats": "Accessories",
+    "owned": "Owned",
+    "equipped": "Wearing",
+    "price": "{n} coins",
+    "not_enough": "Not enough coins!",
+    "bought": "Bought!",
+    "footer": "Enter: buy / wear  -  Esc: back"
+  },
+
+  "items": {
+    "pink": "Pink dress",
+    "sky": "Sky dress",
+    "mint": "Mint dress",
+    "purple": "Purple dress",
+    "red": "Red dress",
+    "gold": "Golden dress",
+    "bow": "Bow",
+    "flower": "Flower",
+    "cap": "Cap",
+    "hijab": "Hijab",
+    "crown": "Crown"
+  },
+
+  "settings": {
+    "title": "Settings",
+    "music": "Music: {v}%",
+    "sfx": "Sound effects: {v}%",
+    "fullscreen": "Full screen: {v}",
+    "difficulty": "Difficulty: {v}",
+    "language": "Language: {v}",
+    "reset": "Reset progress",
+    "reset_confirm": "Are you sure? Press again",
+    "reset_done": "Progress has been reset",
+    "back": "Back",
+    "on": "On",
+    "off": "Off",
+    "footer": "Left / Right to change  -  Esc to go back"
+  },
+
+  "difficulty": {
+    "easy": "Easy",
+    "normal": "Normal",
+    "hard": "Hard"
+  },
+
+  "hud": {
+    "level": "Level {n}",
+    "dash": "Dash",
+    "boss": "Giant snake"
+  },
+
+  "intro": {
+    "level": "Level {n}",
+    "goal": "Collect {gems} gems  -  Snakes: {snakes}",
+    "boss_goal": "Defeat the giant snake!"
+  },
+
+  "power": {
+    "speed": "Speed!",
+    "shield": "Shield!",
+    "freeze": "Freeze!",
+    "ghost": "Invisible!"
+  },
+
+  "pause": {
+    "title": "Paused",
+    "resume": "Resume",
+    "restart": "Restart level",
+    "settings": "Settings",
+    "levels": "Levels",
+    "main_menu": "Main menu"
+  },
+
+  "done": {
+    "title": "Well done, Bayan!",
+    "boss_title": "You beat the giant snake!",
+    "coins": "+{n} coins",
+    "next": "Next level",
+    "finish": "Continue",
+    "replay": "Play again",
+    "levels": "Levels"
+  },
+
+  "over": {
+    "title": "The snake caught you!",
+    "retry": "Try again",
+    "levels": "Levels",
+    "main_menu": "Main menu"
+  },
+
+  "win": {
+    "title": "Bayan escaped every snake!",
+    "subtitle": "You finished the whole adventure",
+    "stars": "Total stars: {n} / {max}",
+    "continue": "Main menu"
+  },
+
+  "float": {
+    "gem": "+{n}",
+    "shield_saved": "Shield saved you!",
+    "minion": "A little snake joined!",
+    "boss_hit": "Ouch!"
+  }
+}

@@ -1,3 +1,4 @@
 @echo off
-python "%~dp0bayan_game.py"
+cd /d "%~dp0"
+python main.py
 if errorlevel 1 pause
